@@ -4,8 +4,8 @@ import { promises as fs } from "fs"; //helps us get access to promises when deal
 
 //import our database [x]
 //import the model that we are trying to import our data into [x]
-import { db } from "./db";
-import { Show, User } from "./models/index";
+import db from "../db";
+import { Show, User } from "../models";
 
 import * as url from "url";
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
