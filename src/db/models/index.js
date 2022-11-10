@@ -1,7 +1,7 @@
-import { Show } from "./Show";
-import { User } from "./User";
+import User from "./User";
+import Show from "./Show";
 
-User.hasMany(Show);
-Show.belongsTo(User);
+User.belongsToMany(Show, { through: "watched" });
+Show.belongsToMany(User, { through: "watched" });
 
-export { Show, User };
+export { User, Show };
