@@ -1,5 +1,6 @@
 import express from "express";
 import validator from "express-validator";
+const vBody = validator.body;
 
 import { User, Show } from "../../db/models";
 import { error, getShow, isId } from "../middleware";
@@ -23,8 +24,6 @@ router.get("/", async (req, res) => {
 router.get("/:showId", isId("showId"), getShow(), (req, res) => {
 	res.send(req.show);
 });
-
-const vBody = validator.body;
 
 router.patch(
 	"/:showId",
