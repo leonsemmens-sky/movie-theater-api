@@ -25,6 +25,66 @@ describe("Test all of the /users endpoints", () => {
 		});
 	});
 
+	describe("POST /users", () => {
+		it("should create a new user and respond with the user object", async () => {
+			const response = await api.post("/users").send({
+				username: "gary@gmail.com",
+				password: "abc12345",
+			});
+
+			expect(response.statusCode).toBe(201);
+
+			const user = response.body;
+			expect(user).toEqual(
+				expect.objectContaining({
+					username: "gary@gmail.com",
+					password: "abc12345",
+				})
+			);
+
+			expect(await User.findByPk(3)).toBeTruthy();
+		});
+
+		it("should respond with a 400 error for an invalid username", async () => {
+			const response = await api.post("/users").send({
+				username: "hello!",
+				password: "abc12345",
+			});
+
+			expect(response.statusCode).toBe(400);
+		});
+
+		it("should respond with a 400 error for an invalid password", async () => {
+			const response = await api.post("/users").send({
+				username: "steve@gmail.com",
+				password: "pass",
+			});
+
+			expect(response.statusCode).toBe(400);
+		});
+	});
+
+	describe("DELETE /users/:userId", () => {
+		it("should delete the user", async () => {
+			const response = await api.delete("/users/2");
+
+			expect(response.statusCode).toBe(200);
+			expect(await User.findByPk(2)).toBeFalsy();
+		});
+
+		it('should respond with a 400 error for a "userId" which is NaN', async () => {
+			const response = await api.delete("/users/hi");
+
+			expect(response.statusCode).toBe(400);
+		});
+
+		it('should respond with a 404 error for an invalid "userId"', async () => {
+			const response = await api.delete("/users/10");
+
+			expect(response.statusCode).toBe(404);
+		});
+	});
+
 	describe("GET /users/:userId", () => {
 		it("should respond with a user object", async () => {
 			const response = await api.get("/users/1");
