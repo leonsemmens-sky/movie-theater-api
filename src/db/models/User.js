@@ -5,7 +5,7 @@ import db from "../db";
 import { DataTypes } from "sequelize";
 
 //Creating a User child class from the Model parent class
-const User = db.define("users", {
+const User = db.define("user", {
 	username: DataTypes.STRING,
 	password: DataTypes.STRING,
 });
