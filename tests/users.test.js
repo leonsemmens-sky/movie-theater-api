@@ -2,7 +2,7 @@ import request from "supertest";
 import app from "../src/api/app";
 import { User, Show } from "../src/db/models";
 
-import seed from "./db/config/seed";
+import seed from "../src/db/config/seed";
 
 describe("Test all of the /users endpoints", () => {
 	const api = request(app);
@@ -38,6 +38,12 @@ describe("Test all of the /users endpoints", () => {
 			);
 		});
 
+		it('should respond with a 400 error for a "userId" which is NaN', async () => {
+			const response = await api.get("/users/hi");
+
+			expect(response.statusCode).toBe(400);
+		});
+
 		it('should respond with a 404 error for an invalid "userId"', async () => {
 			const response = await api.get("/users/10");
 
@@ -46,16 +52,14 @@ describe("Test all of the /users endpoints", () => {
 	});
 
 	describe("GET /users/:userId/shows", () => {
-		beforeAll(async () => {
-			const user = await User.findByPk(0);
+		it("should respond with all of the user's watched shows", async () => {
+			const user = await User.findByPk(1);
 			await user.addShows(
 				await Show.findAll({
 					limit: 5,
 				})
 			);
-		});
 
-		it("should respond with all of the user's watched shows", async () => {
 			const response = await api.get("/users/1/shows");
 			const shows = response.body;
 
@@ -88,27 +92,31 @@ describe("Test all of the /users endpoints", () => {
 		});
 	});
 
-	describe("PUT /users/:userId/shows", () => {
+	describe("PUT /users/:userId/shows/:showId", () => {
 		it("should add the show to the user's watched shows", async () => {
-			const response = await api.put("/users/2/shows").send(2);
+			const response = await api.put("/users/2/shows/2");
 
 			expect(response.statusCode).toBe(202);
 		});
 
-		it('should respond with a 400 error if no "showId" is given or the id is NaN', async () => {
-			const response = await api.put("/users/2/shows").send("steve");
+		it('should respond with a 400 error if "showId" is NaN', async () => {
+			try {
+				const response = await api.put("/users/2/shows/steve");
 
-			expect(response.statusCode).toBe(400);
+				expect(response.statusCode).toBe(400);
+			} catch (e) {
+				console.error(e);
+			}
 		});
 
-		it('should respond with a 400 error when trying to add an invalid "showId"', async () => {
-			const response = await api.put("/users/2/shows").send(26);
+		it('should respond with a 404 error when trying to add an invalid "showId"', async () => {
+			const response = await api.put("/users/2/shows/26");
 
-			expect(response.statusCode).toBe(400);
+			expect(response.statusCode).toBe(404);
 		});
 
 		it('should respond with a 404 error for an invalid "userId"', async () => {
-			const response = await api.put("/users/9/shows").send(1);
+			const response = await api.put("/users/9/shows/1");
 
 			expect(response.statusCode).toBe(404);
 		});

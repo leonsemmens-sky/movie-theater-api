@@ -1,8 +1,8 @@
 import request from "supertest";
 import app from "../src/api/app";
-import { User, Show } from "../src/db/models";
+import { Show } from "../src/db/models";
 
-import seed from "./db/config/seed";
+import seed from "../src/db/config/seed";
 
 describe("Test all of the /shows endpoints", () => {
 	const api = request(app);
@@ -30,9 +30,7 @@ describe("Test all of the /shows endpoints", () => {
 		});
 
 		it("should respond with an array of shows for a particular genre", async () => {
-			const response = await api.get("/shows").query({
-				qenre: "Comedy",
-			});
+			const response = await api.get("/shows?genre=Comedy");
 			const shows = response.body;
 
 			expect(Array.isArray(shows)).toBeTruthy();
@@ -40,9 +38,7 @@ describe("Test all of the /shows endpoints", () => {
 		});
 
 		it("should respond with an empty array for a genre with no shows", async () => {
-			const response = await api.get("/shows").query({
-				qenre: "Gary",
-			});
+			const response = await api.get("/shows?genre=Gary");
 			const shows = response.body;
 
 			expect(Array.isArray(shows)).toBeTruthy();
@@ -63,6 +59,12 @@ describe("Test all of the /shows endpoints", () => {
 					status: "on-going",
 				})
 			);
+		});
+
+		it('should respond with a 400 error for a "showId" which is NaN', async () => {
+			const response = await api.get("/shows/l");
+
+			expect(response.statusCode).toBe(400);
 		});
 
 		it('should respond with a 404 error for an invalid "showId"', async () => {
@@ -123,7 +125,7 @@ describe("Test all of the /shows endpoints", () => {
 
 		it("should respond with a 400 error if the status length is outside the range [5, 25]", async () => {
 			const response = await api.patch("/shows/5").send({
-				status: "this-is-status-is-too-long",
+				status: "this-is-a-status-that-is-too-long",
 			});
 
 			expect(response.statusCode).toBe(400);
@@ -135,19 +137,13 @@ describe("Test all of the /shows endpoints", () => {
 			const response = await api.delete("/shows/8");
 
 			expect(response.statusCode).toBe(200);
-			expect(
-				await Show.findOne({
-					where: {
-						id: 8,
-					},
-				})
-			).toBeFalsy();
+			expect(await Show.findByPk(8)).toBeFalsy();
 		});
 
 		it('should respond with a 400 error if no show with "showId" exists', async () => {
 			const response = await api.delete("/shows/27");
 
-			expect(response.statusCode).toBe(400);
+			expect(response.statusCode).toBe(404);
 		});
 	});
 });
