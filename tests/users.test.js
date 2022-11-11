@@ -100,13 +100,9 @@ describe("Test all of the /users endpoints", () => {
 		});
 
 		it('should respond with a 400 error if "showId" is NaN', async () => {
-			try {
-				const response = await api.put("/users/2/shows/steve");
+			const response = await api.put("/users/2/shows/steve");
 
-				expect(response.statusCode).toBe(400);
-			} catch (e) {
-				console.error(e);
-			}
+			expect(response.statusCode).toBe(400);
 		});
 
 		it('should respond with a 404 error when trying to add an invalid "showId"', async () => {
