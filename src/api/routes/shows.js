@@ -5,8 +5,19 @@ const vBody = validator.body;
 import { User, Show } from "../../db/models";
 import { error, getShow, isId } from "../middleware";
 
+/**
+ * Endpoints:
+ *
+ * GET    /                       - Get an array of all shows
+ * GET    /:showId                - Get a specific show
+ * PATCH  /:showId                - Update the status of a show and override the rating
+ * DELETE /:showId                - Delete a show
+ *
+ */
+
 const router = express.Router();
 
+// GET an array of all shows, query allows for a genre
 router.get("/", async (req, res) => {
 	let where = {};
 	let genre = req.query.genre;
@@ -21,10 +32,12 @@ router.get("/", async (req, res) => {
 	);
 });
 
+// GET a show with the showId
 router.get("/:showId", isId("showId"), getShow(), (req, res) => {
 	res.send(req.show);
 });
 
+// PATCH a new rating and status for the show with showId
 router.patch(
 	"/:showId",
 	isId("showId"),
@@ -61,6 +74,7 @@ router.patch(
 	}
 );
 
+// DELETE a show with showId
 router.delete("/:showId", isId("showId"), getShow(), async (req, res) => {
 	await req.show.destroy();
 	res.sendStatus(200);
