@@ -6,16 +6,59 @@ import { getUser, getShow, isId, error } from "../middleware";
 import { User, Show, Viewing } from "../../db/models";
 import { Op } from "sequelize";
 
+/**
+ * Endpoints:
+ *
+ * GET    /                       - Get an array of all users
+ * POST   /                       - Add a new user
+ * GET    /:userId                - Get a specific user
+ * DELETE /:userId                - Delete a specific user
+ * GET    /:userId/shows          - Get a user's watched shows
+ * PUT    /:userId/shows/:showId  - Add a show to the user's watched shows
+ * PUT    /:userId/rate/:showId   - For a user to rate a show
+ *
+ */
+
 const router = express.Router();
 
+// GET an array of all users
 router.get("/", async (req, res) => {
 	res.send(await User.findAll());
 });
 
+// POST a new user and add it to the database
+router.post(
+	"/",
+	[
+		vBody("username", "Username must be an email")
+			.normalizeEmail()
+			.isEmail(),
+		vBody("password", "Password must be atleast 8 characters").isLength({
+			min: 8,
+		}),
+		error(400),
+	],
+	async (req, res) => {
+		const user = await User.create({
+			username: req.body.username,
+			password: req.body.password,
+		});
+		res.status(201).send(user);
+	}
+);
+
+// DELETE a user with the userId
+router.delete("/:userId", isId("userId"), getUser(), async (req, res) => {
+	await req.user.destroy();
+	res.sendStatus(200);
+});
+
+// GET a user with the userId
 router.get("/:userId", isId("userId"), getUser(), (req, res) => {
 	res.send(req.user);
 });
 
+// GET all of the shows that a user has watched
 router.get(
 	"/:userId/shows",
 	isId("userId"),
@@ -35,6 +78,7 @@ router.get(
 	}
 );
 
+// PUT a show into a user's watched shows
 router.put(
 	"/:userId/shows/:showId",
 	isId(["userId", "showId"]),
@@ -50,6 +94,7 @@ router.put(
 	}
 );
 
+// PUT a rating for a show from the user
 router.put(
 	"/:userId/rate/:showId",
 	isId(["userId", "showId"]),
