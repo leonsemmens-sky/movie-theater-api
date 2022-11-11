@@ -8,7 +8,7 @@ import { DataTypes } from "sequelize";
 const Show = db.define("show", {
 	title: DataTypes.STRING,
 	genre: DataTypes.ENUM("Comedy", "Drama", "Horror", "Sitcom"),
-	rating: DataTypes.INTEGER,
+	rating: DataTypes.FLOAT,
 	status: DataTypes.STRING,
 });
 
