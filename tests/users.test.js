@@ -1,6 +1,6 @@
 import request from "supertest";
 import app from "../src/api/app";
-import { User, Show } from "../src/db/models";
+import { User, Show, Viewing } from "../src/db/models";
 
 import seed from "../src/db/config/seed";
 
@@ -57,7 +57,12 @@ describe("Test all of the /users endpoints", () => {
 			await user.addShows(
 				await Show.findAll({
 					limit: 5,
-				})
+				}),
+				{
+					through: {
+						watched: true,
+					},
+				}
 			);
 
 			const response = await api.get("/users/1/shows");
@@ -113,6 +118,60 @@ describe("Test all of the /users endpoints", () => {
 
 		it('should respond with a 404 error for an invalid "userId"', async () => {
 			const response = await api.put("/users/9/shows/1");
+
+			expect(response.statusCode).toBe(404);
+		});
+	});
+
+	describe("PUT /users/:userId/rate/:showId", () => {
+		it("should add a rating to the show", async () => {
+			const response = await api.put("/users/1/rate/2").send({
+				rating: 4,
+			});
+
+			expect(response.statusCode).toBe(202);
+
+			const show = await Show.findByPk(2);
+			expect(
+				await show.getViewings({
+					where: {
+						userId: 1,
+						rating: 4,
+					},
+				})
+			).toBeTruthy();
+		});
+
+		it("should respond with a 400 error if trying to set the rating to NaN", async () => {
+			const response = await api.put("/users/1/rate/7").send({
+				rating: "gary",
+			});
+
+			expect(response.statusCode).toBe(400);
+		});
+
+		it("should respond with a 400 error if trying to set the rating to a number outside the range [0, 5]", async () => {
+			const response = await api.put("/users/1/rate/3").send({
+				rating: 9000,
+			});
+
+			expect(response.statusCode).toBe(400);
+		});
+
+		it('should respond with a 400 error if "showId" is NaN', async () => {
+			const response = await api.put("/users/2/rate/steve");
+
+			expect(response.statusCode).toBe(400);
+		});
+
+		it('should respond with a 404 error when trying to add an invalid "showId"', async () => {
+			const response = await api.put("/users/2/rate/26");
+
+			expect(response.statusCode).toBe(404);
+		});
+
+		it('should respond with a 404 error for an invalid "userId"', async () => {
+			const response = await api.put("/users/9/rate/1");
 
 			expect(response.statusCode).toBe(404);
 		});
